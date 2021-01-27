@@ -1,0 +1,1 @@
+int getCapacity(int voltage);
