@@ -6,6 +6,8 @@
 #include <hd44780.h>                       // main hd44780 header
 #include <hd44780ioClass/hd44780_I2Cexp.h> // i2c expander i/o class header
 
+const int debug = 1; // set 1 to run voltage and lcd tests on startup
+
 const int gpsTX = A1;
 const int gpsRX = A2;
 const int currentPin = A3;
@@ -14,25 +16,38 @@ const int lightSwitchPin = 12;
 const int highBeamSwitchPin = 3;
 const int lightDriverPin = 11;
 
-// 
-const float currentShift = 0.25;
-
 hd44780_I2Cexp lcd(0x27);
 SoftwareSerial gpsSerial(gpsTX, gpsRX);
 
 
+const float currentShift = 0.25;// calibrate current sensor 
 const float digitalToCurrent = 30.0 / (512.0);
 const float voltageLevelShift = 59.2 / 1023.0;
 
+
+// size of the battrey grid
+const int bRows = 13;
+const int bColumns = 3;
+const float cellCapacity = 2.6;
+const float rowAh = bColumns * cellCapacity;
+
+// headlight levels
 const int lowLight = 10;
 const int highLight = 50;
 const int fullLight = 255;
 
 int lightState = 0;
 int beamState = 0;
+
+int standBy = 0; // current  < 0.2
+float vDOD = 0.0; //depth of discharge, from voltage
+float DOD = 0.0; //depth of discharge
+float SOC = 0.0; // state of charge (percentage)
 float current = 0.0;
 float voltage = 0.0;
 
+unsigned long currentMeasureMillis = 0; // used for current integration
+unsigned long lcdRefreshMillis = 0; // used for lcd refreshing
 // nice animation to check lcd and front light works
 void bootAnimation() {
   int animationStep = 80;
@@ -97,30 +112,90 @@ void measureVA() {
   current = tempCurrent / (float) iterations;
   voltage = tempVoltage / (float) iterations;
 }
+
+
+// Sets the vDOD according to the predefined discharge graph.  
+void setVDOD(float v) {
+  // function for charge(v) from 18650 discharge graph. Check GitHub for more information.
+  float x = v / (float) bRows;
+  float Ah = -0.9784*pow(x, 6) + 18.6788*pow(x, 5) - 146.9607*pow(x, 4) + 609.3256*pow(x, 3) - 1402.3527*pow(x, 2) + 1694.9589*x - 836.5886;
+  vDOD = Ah * (float) bColumns;
+}
+
+void setDOD() {
+  if (current < 0.2) {
+    setVDOD(voltage);
+    if (standBy) {
+      DOD = (DOD * 7 + vDOD) / 8;
+    } else {
+      DOD = vDOD;
+    }
+    standBy = 1;
+  };
+  if (current > 0.5) {
+     standBy = 0;
+  }
+}
  
+void refreshLCD() {
+  lcd.clear();
+    lcd.print(current);
+    lcd.print("A ");
+    lcd.print(voltage);
+    lcd.print('V');
+    lcd.setCursor(0,1);
+    lcd.print(DOD);
+    lcd.print("Ah ");
+    lcd.print(SOC * 100);
+    lcd.print("%");
+}
+
 void setup() {
   pinMode(currentPin, INPUT);
   pinMode(voltagePin, INPUT);
   pinMode(lightSwitchPin, INPUT);
   pinMode(highBeamSwitchPin, INPUT);
   pinMode(lightDriverPin, OUTPUT);
-    
   int status;
   status = lcd.begin(16, 2);
   if(status) {
     hd44780::fatalError(status); // does not return
   }
+  if (debug) {
+    lcd.print("DEBUG = 1");
+    delay(500);
+    lcd.clear();
+    delay(500);
+    for (int i = 110; i > 0; i--) {
+      voltage = (float) i / 2.0;
+      current = 0.1;
+      setDOD();
+      standBy = 0;
+      SOC = 1 - (DOD / rowAh);
+      refreshLCD();
+      delay(1000);
+    }
+    lcd.clear();
+    lcd.print("DEBUG OVER");
+  }
+  measureVA();
+  setDOD();
   bootAnimation();
 }
 
 void loop() {
-  lcd.clear();
   setLights();
   measureVA();
-  lcd.print(current);
-  lcd.print('A');
-  lcd.setCursor(0,1);
-  lcd.print(voltage);
-  lcd.print('V');
-  delay(500);
+  setDOD();
+  //current integration
+  delay(250);
+  unsigned long measureTime = (millis() - currentMeasureMillis) / 1000;
+  DOD = DOD + current * measureTime / 3600;
+  SOC = 1 - (DOD / rowAh);
+  currentMeasureMillis = millis();
+
+  if (millis() - lcdRefreshMillis > 1500) {
+    refreshLCD();
+    lcdRefreshMillis = millis();
+  }
 }
