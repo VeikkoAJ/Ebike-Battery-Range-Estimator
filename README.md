@@ -25,8 +25,13 @@ As li-ion batteries don't have a linear voltage to charge connection, a custom l
 The system automatically switches to active current mode and back, when a current streshold of 0.2 A is passed. Active current mode measures current and time intervals to integrate used charge. Used charge is then added to DOD value. Measuring the battery voltage under heavy load (+20 A) gives and inaccurate reading, as the battery internal resistance saggs the voltage. This is a common problem with simpler voltage only battery capacity monitors.
 
 **LCD Display**
+
 The LCD display is mounted vertically on the bike frame, because the frame wasn't wide enough for a 16\*2 display to be mounted horizontally. This is why the display is only capable of showing 2 digit numbers per row and unit definitions have to be painted next to the lcd. Upside of mounting the display vertically is that a proper battery bar can be dispalyed on it. 
 8 extra custom characters (numbers 2,4,5,6,7,8,9 and a "halfbar") are saved to the LCD display. A custom function is used to print numbers to the display. Custom symbols can be  found at [CustomChar.c](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/EbikeBatteryRangeEstimator/CustomChar.c)
+
+<img src="https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/LCD_interface_scaled.jpg" width='400'> 
+
+*Still missing decals to cover the horrible wiring :)* 
 
 ## Used parts and modules
 * **Arduino Nano 3.0**
