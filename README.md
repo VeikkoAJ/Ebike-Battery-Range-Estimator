@@ -55,8 +55,8 @@ GPS module was chosen mainly because of I already had one from an old project. A
 
 The bike operates on 3 voltage levels:
  * 48 V: motor controller, main voltage divider
- * 12 V: produced by a (60v->12V) 60W step-down converter. 12 V is used to power the light switch voltagedivider, Headlight, backlight, and high beam.
- * 5 V: produced by a (12V->5V) 10W step-down converter. 5 V is used to drive all the modules and the LCD display.
+ * 12 V: produced by the 60v->12V (60W) step-down converter. 12 V is used to power the light switch voltage divider, headlight, backlight, and high beam.
+ * 5 V: produced by the 12V->5V (10W) step-down converter. 5 V is used to drive all the modules and the LCD display.
  
 Additionally, the bike has a main relay driven by an ignition switch. The relay is located directly after the battery. The current sensor is located after the relay, measuring full current flow, except the relay coil current.
 
