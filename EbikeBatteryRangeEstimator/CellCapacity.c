@@ -1,5 +1,7 @@
 // values store as [mV, mA] pairs
-int lookUpTable[99][2] = {
+// more information about how this table was generated can be found here:
+// https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator
+int voltageCapacityTable[99][2] = {
   {2703, 2600},
   {2753, 2574},
   {2824, 2548},
@@ -101,7 +103,10 @@ int lookUpTable[99][2] = {
   {4200,3},
 };
 
-
+/*
+ * Returns the capacity USED, to a given open circuit cell voltage
+ * Calculates average between the 2 surrounding values
+ */
 int getCapacity(int voltage, int maxCapacity) {
     int mAh = 0;
     if (voltage < 2700) {
@@ -111,12 +116,12 @@ int getCapacity(int voltage, int maxCapacity) {
         mAh =  0;
     }
     for (int i = 0; i < 99; i++) {
-        if (voltage < lookUpTable[i][0]) {
+        if (voltage < voltageCapacityTable[i][0]) {
             if (i > 1) {
-                mAh = ((lookUpTable[i][1] + lookUpTable[i - 1][1]) / 2);
+                mAh = ((voltageCapacityTable[i][1] + voltageCapacityTable[i - 1][1]) / 2);
                 break;
             } else {
-                mAh = lookUpTable[i][1];
+                mAh = voltageCapacityTable[i][1];
             }
         }
     }
