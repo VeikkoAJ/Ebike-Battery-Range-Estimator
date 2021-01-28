@@ -1,6 +1,10 @@
   // Ebike intelligent battery capacity and range estimator
-// Version 0.1 released: 13.1.2021
+// Version 0.5 released: 28.1.2021
 // Veikko Jaaskelainen
+extern "C"{
+  #include "CellCapacity.h"
+}
+
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <hd44780.h>                       // main hd44780 header
@@ -28,7 +32,7 @@ const float voltageLevelShift = 59.2 / 1023.0;
 // size of the battrey grid
 const int bRows = 13;
 const int bColumns = 3;
-const float cellCapacity = 2.6;
+const float cellCapacity = 2.55;
 const float rowAh = (float) bColumns * cellCapacity;
 
 // headlight levels
@@ -116,21 +120,10 @@ void measureVA() {
 
 // Sets the vDOD according to the predefined discharge graph.  
 void setVDOD(float v) {
-  float x = v / (float) bRows;
-  float Ah = 0.0;
+  float x = v * 1000 /  bRows;
+  float Ah = getCapacity(x, (int) (cellCapacity * 1000));
   // function for charge(v) from 18650 discharge graph. Check GitHub for more information.
-  if (x > 4.2) {
-    Ah = cellCapacity;
-  } else if (x > 3.631) {
-    Ah = 272.8114 * x*x*x*x*x*x - 6485.9513 * x*x*x*x*x + 64263.7087 * x*x*x*x - 339662.9071 * x*x*x + 1010051.8685 * x*x  - 1602243.2661 * x + 1059238.5505;
-  } else if (x > 3.451) {
-    Ah = -47.1325 * pow(x, 4) + 618.4177 * pow(x, 3) - 3040.7911 * pow(x,2) + 6640.2047* x - 5430.5289;
-  } else if (x > 2.9) {
-    Ah = -1.4566* pow(x, 3) + 13.3235344061906 * pow(x,2) - 40.6912348319163 * x + 44.0109564326736;
-  } else {
-    Ah = 0.0;
-  }
-  vDOD = Ah * (float) bColumns;
+  vDOD = (float) Ah / 1000.0 * (float) bColumns;
 }
 
 void setDOD() {
@@ -184,7 +177,7 @@ void setup() {
       DOD = vDOD;
       SOC = 1.0 - vDOD / rowAh;
       refreshLCD();
-      delay(1000);
+      delay(500);
     }
     lcd.clear();
     lcd.print("DEBUG OVER");

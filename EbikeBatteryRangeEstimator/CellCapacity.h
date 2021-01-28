@@ -1,1 +1,1 @@
-int getCapacity(int voltage);
+int getCapacity(int voltage, int capacity);

@@ -102,14 +102,21 @@ int lookUpTable[99][2] = {
 };
 
 
-int getCapacity(int voltage) {
+int getCapacity(int voltage, int maxCapacity) {
+    int mAh = 0;
+    if (voltage < 2700) {
+        mAh maxCapacity;
+    }
+    if (voltage > 4200) {
+        mAh =  0;
+    }
     for (int i = 0; i < 99; i++) {
         if (voltage < lookUpTable[i][0]) {
             if (i > 1) {
-                return ((lookUpTable[i][1] + lookUpTable[i - 1][1]) / 2);
+                mAh ((lookUpTable[i][1] + lookUpTable[i - 1][1]) / 2);
             }
-        return lookUpTable[i][1];
+        mAh lookUpTable[i][1];
     }
   }
-  return 0;
+  return mAh <= maxCapacity ? mAh : maxCapacity;
 };
