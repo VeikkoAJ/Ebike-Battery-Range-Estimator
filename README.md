@@ -14,11 +14,15 @@ Main motivation for this project was poor battery capacity displaying with stock
 ## Usage
 *It is recommended to fully customize this program, as most of this project was made with parts at hand thus containing unnescessary part (such as GPS module instead of Hall sensors).*
 
-**Base voltage of the Ebike is 48V**, meaning the voltage divider resistors are sized for 5V pin voltage at 59 V battery voltage, so it probably won't work with 36V or 24V systems. The LCD was mounted sideways, so 8 extra characters are defined and saved to the LCD display. This is why the display is only capable of showing 2 digit numbers per row and unit definitions have to be painted next to the lcd.
+**Base voltage of the Ebike is 48 V**, meaning the voltage divider resistors are sized for 5 V pin voltage at 59 V battery voltage, so it probably won't work with 36 V or 24 V systems. The LCD was mounted sideways, so 8 extra characters are defined and saved to the LCD display. This is why the display is only capable of showing 2 digit numbers per row and unit definitions have to be painted next to the lcd.
 
-**State of charge estimation**
+**State Of Charge (SOC) estimation**
 
+State of charge is estimated in two modes: standby voltage and active current. Standby voltage is used to estimate the battery Depth of Dischardge (DOD). 
 
+As li-ion batteries don't have a linear voltage to charge connection, a custom lookup table was created. The lookup table is based on a LG 18650 M26 2600mAh cell and it's discharge graph. Discharge graph and the fitted plot can be found [here](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/README.md#sources). The fitted function was used to generate a lookup table, with almost even charge distances.
+
+The program automatically switches to active current mode adn back, when a current streshold of 0.2 A is passed. Active current mode measures current and time intervals to integrate used charge. Used charge is then added to DOD value. Measuring the battery voltage under heavy load (+20 A) gives and inaccurate reading, as the battery internal resistance saggs the voltage. This is a common problem with simpler voltage only battery capacity monitors.
 
 ## Used parts and modules
 * **Arduino Nano 3.0**
@@ -29,14 +33,16 @@ Main motivation for this project was poor battery capacity displaying with stock
 
 ## Schematic 
 
+**Arduino pins and voltage dividers**
 ![Arduino wiring](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/wiring.svg)
 
+
 The bike operates on 3 voltage levels
- * 48V: motor controller, main voltage divider
- * 12V: produced by a (60v->12V) 60W step-down converter. 12V is used to power the light switch votlagedivider, Headlight, backlight and high beam.
- * 5V: produced by a (12V->5V) 10W step.down converter. 5V is used to drive all the modules and the LCD display.
+ * 48 V: motor controller, main voltage divider
+ * 12 V: produced by a (60v->12V) 60W step-down converter. 12 V is used to power the light switch votlagedivider, Headlight, backlight and high beam.
+ * 5 V: produced by a (12V->5V) 10W step.down converter. 5 V is used to drive all the modules and the LCD display.
  
-Additionally the bike has a main relay driven by an ignition switch. The relay is located directly after the battery. The current senosr is located after the relay. 
+Additionally the bike has a main relay driven by an ignition switch. The relay is located directly after the battery. The current sensor is located after the relay, measuring full current flow, exept the relay coil current.
 
 ## Libraries
 * **Wire.h**, secondary serialport to gps module
