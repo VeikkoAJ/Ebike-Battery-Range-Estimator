@@ -1,10 +1,21 @@
 # Ebike-Battery-Range-Estimator
 
+Arduino based electric bicycle control unit. 
+Main features:
+* Light controlling
+* Intelligent batttery charge monitoring
+* Range estimation
+* Vertical display
+* Cool headlight and display animation on startup 
 
-
+Main motivation for this project was poor battery capacity displaying with stock ebike control units, as well as the need to change headlight brightness during driving. Using the lcd caused additional challenges, as it had to  be mounted vertically on the frame due to frame width limitations.
 
 
 ## Usage
+*It is recommended to fully customize this program, as most of this project was made with parts at hand thus containing unnescessary part (such as GPS module instead of Hall sensors).*
+
+**Base voltage of the Ebike is 48V**, meaning the voltage divider resistors are sized for 5V pin voltage at 59 V battery voltage, so it probably won't work with 36V or 24V systems. The LCD was mounted sideways, so 8 extra characters are defined and saved to the LCD display. This is why the display is only capable of showing 2 digit numbers per row and unit definitions have to be painted next to the lcd.
+
 
 
 ## Used parts and modules
@@ -20,6 +31,13 @@
 * **[TinyGPS.h](https://github.com/mikalhart/TinyGPS)** gps message parsing
 * **hd44780.h**, LCD driver
 * **hd44780ioClass/hd44780_I2Cexp.h**, I2C interface
+
+## Upcoming features
+* lcd dimmming with light states
+* Hourmeter (already included in most of the stock Ebike control units)
+
+## Known Bugs
+* Powering the bike from battery stop the connection to the laptop. This is probably caused by the 5V step-down converter having different voltage than the computers usb port.
 
 ## Sources
 * [Battery capacity and discharge graphs, lygte-info](https://lygte-info.dk/review/batteries2012/LG%2018650%20M26%202600mAh%20(Purple)%20UK.html)
