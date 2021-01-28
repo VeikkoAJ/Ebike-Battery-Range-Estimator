@@ -26,7 +26,7 @@ The system automatically switches to active current mode and back, when a curren
 
 **LCD Display**
 The LCD display is mounted vertically on the bike frame, because the frame wasn't wide enough for a 16\*2 display to be mounted horizontally. This is why the display is only capable of showing 2 digit numbers per row and unit definitions have to be painted next to the lcd. Upside of mounting the display vertically is that a proper battery bar can be dispalyed on it. 
-8 extra custom characters (numbers 2,4,5,6,7,8,9 and a "halfbar") are saved to the LCD display. A custom function is used for writing to the display, found at [CustomChar.c](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/EbikeBatteryRangeEstimator/CustomChar.c). 
+8 extra custom characters (numbers 2,4,5,6,7,8,9 and a "halfbar") are saved to the LCD display. A custom function is used to print numbers to the display. Custom symbols can be  found at [CustomChar.c](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/EbikeBatteryRangeEstimator/CustomChar.c)
 
 ## Used parts and modules
 * **Arduino Nano 3.0**
@@ -63,6 +63,7 @@ Additionally the bike has a main relay driven by an ignition switch. The relay i
 ## Known Bugs
 * Powering the bike from battery stop the connection to the laptop. This is probably caused by the 5V step-down converter having different voltage than the computers usb port.
 * Before driving the headlight with a mosfet, the hubmotor could be used as a dynamo powering the headlight in case of battery dying
+* Custom symbol mapping shoud use pointers
 
 ## Sources
 * [Battery capacity and discharge graphs, lygte-info](https://lygte-info.dk/review/batteries2012/LG%2018650%20M26%202600mAh%20(Purple)%20UK.html)
