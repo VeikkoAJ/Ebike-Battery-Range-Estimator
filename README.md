@@ -39,12 +39,13 @@ The LCD display is mounted vertically on the bike frame because the frame was no
 GPS module was chosen mainly because of I already had one from an old project. A hall sensor would be better suited for measuring the bike velocity as it is faster and more precise than a GPS module.
 
 
-## Used parts and modules
+## Parts and modules
 * **Arduino Nano 3.0**
 * **ACS712 30A** current sensor 
 * **Neo-6m** GPS module
 * **hd44780** 16*2 lcd display 
 * **PCF8574** I2C backpack
+
 
 ## Schematic 
 
@@ -63,12 +64,12 @@ Additionally, the bike has a main relay driven by an ignition switch. The relay 
 * **Wire.h**, I2C interface to display
 * **SoftwareSerial.h***, GPS connection
 * **[TinyGPS.h](https://github.com/mikalhart/TinyGPS)** GPS message parsing
-* **hd44780.h**, LCD driver
-* **hd44780ioClass/hd44780_I2Cexp.h**, I2C interface
+* **[hd44780.h](https://github.com/duinoWitchery/hd44780)**, LCD driver
+* **[hd44780ioClass/hd44780_I2Cexp.h](https://github.com/duinoWitchery/hd44780)**, I2C interface
 
-## Upcoming features
-* relay and battery pack wiring
-* lcd dimming with light states
+## Possible features
+* include relay and battery pack wiring in README
+* LCD dimming with headlight state
 * Hour meter (already included in most of the stock Ebike control units)
 
 ## Known Bugs
