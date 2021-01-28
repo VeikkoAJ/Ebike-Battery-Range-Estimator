@@ -114,9 +114,11 @@ int getCapacity(int voltage, int maxCapacity) {
         if (voltage < lookUpTable[i][0]) {
             if (i > 1) {
                 mAh = ((lookUpTable[i][1] + lookUpTable[i - 1][1]) / 2);
+                break;
+            } else {
+                mAh = lookUpTable[i][1];
             }
-        mAh = lookUpTable[i][1];
+        }
     }
-  }
   return mAh <= maxCapacity ? mAh : maxCapacity;
 };

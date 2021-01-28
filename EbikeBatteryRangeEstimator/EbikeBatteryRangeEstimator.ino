@@ -33,7 +33,7 @@ const float voltageLevelShift = 59.2 / 1023.0;
 // size of the battrey grid
 const int bRows = 13;
 const int bColumns = 3;
-const float cellCapacity = 2.55;
+const float cellCapacity = 2.6;
 const float rowAh = (float) bColumns * cellCapacity;
 
 // headlight levels
@@ -93,13 +93,13 @@ void bootAnimation() {
 
 // sets the lcd custom characters
 void setCustomChars() {
-  const int numbers[7] = {2,4,5,6,7,8,9};
+  const int numbers[8] = {0,2,4,5,6,7,8,9};
   byte customChar[8];
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < 8; i++) {
     getCustomCharPattern(numbers[i], customChar);
     lcd.createChar(i, customChar);
   }
-}
+} 
 
 void printReMappedString(char inputText[], int column) {
   if (column > 15 || column < 0) {
@@ -146,11 +146,11 @@ void measureVA() {
 }
 
 // Sets the vDOD according to the predefined discharge graph.  
+int mAh = 0;
 void setVDOD(float v) {
-  float x = v * 1000 /  bRows;
-  float Ah = getCapacity(x, (int) (cellCapacity * 1000));
-  // function for charge(v) from 18650 discharge graph. Check GitHub for more information.
-  vDOD = (float) Ah / 1000.0 * (float) bColumns;
+  int x = v * 1000.0 /  bRows;
+  mAh = getCapacity(x, (int) (cellCapacity * 1000));
+  vDOD = (float) mAh * bColumns / 1000.0;
 }
 
 void setDOD() {
@@ -170,15 +170,43 @@ void setDOD() {
  
 void refreshLCD() {
   lcd.clear();
-    lcd.print(current);
-    lcd.print("A ");
-    lcd.print(voltage);
-    lcd.print('V');
-    lcd.setCursor(0,1);
-    lcd.print(DOD);
-    lcd.print("Ah ");
+    int printColumn = 0;
+    for (int i = 0; i <= 10 - (int) (SOC * 10.0 + 1); i++) {
+      lcd.setCursor(i, 0);
+      lcd.write(" ");
+      lcd.setCursor(i, 1);
+      lcd.write(" ");
+      printColumn = i;
+    }
+    unsigned char middleSymbol;
+    int decimalPercentage = int (SOC * 100.0) - int (SOC * 10) * 10;
+    if (decimalPercentage < 3) {
+      middleSymbol = ' ';
+    }
+    if (decimalPercentage <= 6) {
+      middleSymbol = byte(0);
+    }
+    if (decimalPercentage > 6) {
+      middleSymbol = (char) 255;
+    }
+    lcd.setCursor(printColumn + 1, 0);
+    lcd.write(middleSymbol);
+    lcd.setCursor(printColumn + 1, 1);
+    lcd.write(middleSymbol);
+
+    
+    for (int i = printColumn + 2; i <= int (SOC * 10.0) + printColumn; i++) {
+      lcd.setCursor(i, 0);
+      lcd.write((char) 255);
+      lcd.setCursor(i, 1);
+      lcd.write((char) 255);
+    }
+    lcd.setCursor(10, 0);
+    lcd.write("|");
     lcd.print(SOC * 100);
-    lcd.print("%");
+    lcd.setCursor(10, 1);
+    lcd.write("|");
+    lcd.print(mAh);
 }
 
 void setup() {
@@ -204,7 +232,7 @@ void setup() {
       char text[3];
       printReMappedString(itoa(i, text, 10), i);
     }
-    delay(5000);
+    delay(2000);
     lcd.clear();
     delay(500);
     for (int i = 110; i > 64; i--) {
@@ -232,7 +260,7 @@ void loop() {
   delay(250);
   unsigned long measureTime = (millis() - currentMeasureMillis) / 1000;
   DOD = DOD - current * measureTime / 3600;
-  SOC = DOD / rowAh;
+  SOC = 1.0 - (DOD / rowAh);
   currentMeasureMillis = millis();
 
   if (millis() - lcdRefreshMillis > 1500) {

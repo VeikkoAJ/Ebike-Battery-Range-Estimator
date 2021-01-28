@@ -1,3 +1,14 @@
+unsigned char halfBar[8] = {
+        0x07,
+        0x07,
+        0x03,
+        0x07,
+        0x07,
+        0x03,
+        0x07,
+        0x07
+};
+
 unsigned char cTwo[8] = {
         0x00,
         0x00,
@@ -95,6 +106,9 @@ int iterateArray(unsigned char numberPattern[], unsigned char pattern[]) {
 
 int getCustomCharPattern(int number, unsigned char pattern[]) {
     switch (number) {
+        case 0:
+            iterateArray(pattern, halfBar);
+            return 0;
         case 2:
             iterateArray(pattern, cTwo);
             return 0;
@@ -126,26 +140,28 @@ int getCustomCharPattern(int number, unsigned char pattern[]) {
 // returns lcd character that resemble give char sideways
 unsigned char getRemappedChar(char key) {
     switch (key) {
-        case '0':
-            return (unsigned char) 'o';
-        case '1':
-            return (unsigned char) 0x2D;
-        case '2':
+        case 'B':
             return (unsigned char) 0x00;
+        case '0':
+            return (unsigned char) 'o'; // o
+        case '1':
+            return (unsigned char) 0x2D; // -
+        case '2':
+            return (unsigned char) 0x01; //Addres of custom 2 symbol in lcd memory
         case '3':
             return (unsigned char) 0x6D;
         case '4':
-            return (unsigned char) 0x01;
-        case '5':
             return (unsigned char) 0x02;
-        case '6':
+        case '5':
             return (unsigned char) 0x03;
-        case '7':
+        case '6':
             return (unsigned char) 0x04;
-        case '8':
+        case '7':
             return (unsigned char) 0x05;
-        case '9':
+        case '8':
             return (unsigned char) 0x06;
+        case '9':
+            return (unsigned char) 0x07;
         default:
             return (unsigned char) 0xFF;
     }
