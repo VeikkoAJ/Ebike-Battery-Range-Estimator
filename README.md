@@ -28,11 +28,11 @@ The system automatically switches to active current mode and back when a current
 **LCD Display**
 
 The LCD display is mounted vertically on the bike frame because the frame was not wide enough for a 16\*2 display to be mounted horizontally. Therefore, the display is only capable of showing 2-digit numbers per row and unit definitions have to be painted next to the lcd. Upside of mounting the display vertically is that a proper battery bar can be displayed on it. 
-8 extra custom characters (numbers 2,4,5,6,7,8,9 and a "half bar") are saved to the LCD display. A custom function is used to print numbers to the display. Custom symbols located in [CustomChar.c](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/EbikeBatteryRangeEstimator/CustomChar.c)
+8 extra custom characters (numbers 2,4,5,6,7,8,9 and a "half bar") are saved to the LCD display. Because of the LCD displays memory limit on custom symbols (8 custom characters), "0","1", "3" are reused "o", "-", "m". "Half bar" is used to increase battery capacity bar resolution to 5%. to Custom symbols can be found at [CustomChar.c](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/EbikeBatteryRangeEstimator/CustomChar.c)
 
 <img src="https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/LCD_interface_scaled.jpg" width='400'> 
 
-*Still missing decals to cover the horrible wiring :)* 
+*Still missing decals to cover wiring mess :)* 
 
 **GPS**
 
