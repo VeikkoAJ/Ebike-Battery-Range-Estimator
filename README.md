@@ -35,7 +35,7 @@ The LCD display is mounted vertically on the bike frame because the frame was no
 
 **GPS**
 
-GPS module was chosen because of the possible extra features it has over a hall sensor and i already had one ready from an old project. A hall sensor would be better suited for measuring the bike velocity as it is faster and more precise than a GPS module.
+GPS module was chosen mainly because of I already had one from an old project. A hall sensor would be better suited for measuring the bike velocity as it is faster and more precise than a GPS module.
 
 
 ## Used parts and modules
