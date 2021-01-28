@@ -14,7 +14,7 @@ Main motivation for this project was poor battery capacity displaying with stock
 ## Usage
 *It is recommended to fully customize this program, as most of this project was made with parts at hand thus containing unnescessary part (such as GPS module instead of Hall sensors).*
 
-**Base voltage of the Ebike is 48 V**, meaning the voltage divider resistors are sized for 5 V pin voltage at 59 V battery voltage, so it probably won't work with 36 V or 24 V systems. The LCD was mounted sideways, so 8 extra characters are defined and saved to the LCD display. This is why the display is only capable of showing 2 digit numbers per row and unit definitions have to be painted next to the lcd.
+**Base voltage of the Ebike is 48 V**, meaning the voltage divider resistors are sized for 5 V pin voltage at 59 V battery voltage, so it probably won't work with 36 V or 24 V systems.
 
 **State Of Charge (SOC) estimation**
 
@@ -22,7 +22,11 @@ State of charge is estimated in two modes: standby voltage and active current. S
 
 As li-ion batteries don't have a linear voltage to charge connection, a custom lookup table was created. The lookup table is based on a LG 18650 M26 2600mAh cell and it's discharge graph. Discharge graph and the fitted plot can be found [here](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/README.md#sources). The fitted function was used to generate a lookup table, with almost even charge distances.
 
-The program automatically switches to active current mode adn back, when a current streshold of 0.2 A is passed. Active current mode measures current and time intervals to integrate used charge. Used charge is then added to DOD value. Measuring the battery voltage under heavy load (+20 A) gives and inaccurate reading, as the battery internal resistance saggs the voltage. This is a common problem with simpler voltage only battery capacity monitors.
+The system automatically switches to active current mode and back, when a current streshold of 0.2 A is passed. Active current mode measures current and time intervals to integrate used charge. Used charge is then added to DOD value. Measuring the battery voltage under heavy load (+20 A) gives and inaccurate reading, as the battery internal resistance saggs the voltage. This is a common problem with simpler voltage only battery capacity monitors.
+
+**LCD Display**
+The LCD display is mounted vertically on the bike frame, because the frame wasn't wide enough for a 16\*2 display to be mounted horizontally. This is why the display is only capable of showing 2 digit numbers per row and unit definitions have to be painted next to the lcd. Upside of mounting the display vertically is that a proper battery bar can be dispalyed on it. 
+8 extra custom characters (numbers 2,4,5,6,7,8,9 and a "halfbar") are saved to the LCD display. A custom function is used for writing to the display, found at [CustomChar.c](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/EbikeBatteryRangeEstimator/CustomChar.c). 
 
 ## Used parts and modules
 * **Arduino Nano 3.0**
