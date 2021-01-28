@@ -1,12 +1,12 @@
 unsigned char halfBar[8] = {
-        0x07,
-        0x07,
         0x03,
-        0x07,
-        0x07,
         0x03,
-        0x07,
-        0x07
+        0x03,
+        0x03,
+        0x03,
+        0x03,
+        0x03,
+        0x03
 };
 
 unsigned char cTwo[8] = {

@@ -8,13 +8,16 @@ extern "C"{
 
 #include <Wire.h>
 #include <SoftwareSerial.h>
+#include <TinyGPS.h>
 #include <hd44780.h>                       // main hd44780 header
 #include <hd44780ioClass/hd44780_I2Cexp.h> // i2c expander i/o class header
 
-const int debug = 1; // set 1 to run voltage and lcd tests on startup
+const int debug = 1; // Run voltage and lcd tests on startup
+const int debugGps = 0; // enables serial communication to pc from gps
+const int debugRange = 1; // debugging range estimation
 
-const int gpsTX = A1;
-const int gpsRX = A2;
+const int gpsTX = A2;
+const int gpsRX = A1;
 const int currentPin = A3;
 const int voltagePin = A7;
 const int lightSwitchPin = 12;
@@ -22,6 +25,7 @@ const int highBeamSwitchPin = 3;
 const int lightDriverPin = 11;
 
 SoftwareSerial gpsSerial(gpsTX, gpsRX);
+TinyGPS gps;
 hd44780_I2Cexp lcd(0x27);
 
 
@@ -50,6 +54,15 @@ float DOD = 0.0; //depth of discharge
 float SOC = 0.0; // state of charge (percentage)
 float current = 0.0;
 float voltage = 0.0;
+int range = 0;
+
+long rangeTimeSum = 0;
+float rangeCurrentAverage = 0.0;
+float rangeVelocityAverage = 0.0;
+int rangeSumCount = 0;
+
+float velocityKnots = 0.0;
+bool newGpsData = false; 
 
 unsigned long currentMeasureMillis = 0; // used for current integration
 unsigned long lcdRefreshMillis = 0; // used for lcd refreshing
@@ -70,8 +83,8 @@ void bootAnimation() {
   delay(300);
   for (int i = 0; i < 256; i++) {
     delay(animationStep / 17);
-    float lighValueScaling = (255 - lowLight) / 255; // prevent overflow
-    analogWrite(lightDriverPin, (255 - i) * lighValueScaling  + lowLight );
+    float lighValue = (255 - i ) > lowLight ? (255 - i) : lowLight;
+    analogWrite(lightDriverPin, lighValue);
     if (i % 17 == 0) {
       lcd.setCursor(i / 17, 0);
       lcd.write('=');
@@ -79,7 +92,7 @@ void bootAnimation() {
       lcd.write('=');
     }
   }
-  delay(200);
+  delay(100);
   for (int i = 0; i < 256; i++) {
     delay(animationStep / 17);
     if (i % 17 == 0) {
@@ -141,13 +154,15 @@ void measureVA() {
     tempVoltage = tempVoltage + analogRead(voltagePin) * voltageLevelShift;
     delay(1);
   }
-  current = tempCurrent / (float) iterations;
+  tempCurrent = tempCurrent / (float) iterations;
+  current = tempCurrent > 0 ? tempCurrent : 0.0; // prevents negative current (negative current is useless, but can occur with motor braking)
   voltage = tempVoltage / (float) iterations;
 }
 
 // Sets the vDOD according to the predefined discharge graph.  
-int mAh = 0;
+
 void setVDOD(float v) {
+  int mAh = 0;
   int x = v * 1000.0 /  bRows;
   mAh = getCapacity(x, (int) (cellCapacity * 1000));
   vDOD = (float) mAh * bColumns / 1000.0;
@@ -168,45 +183,106 @@ void setDOD() {
   }
 }
  
+void setRangeEstimation(unsigned long timeInterval) {
+  if (rangeSumCount < 20) {
+    if (debugRange) {
+      current = 8.15;
+      velocityKnots = 13.95;
+      Serial.println(rangeSumCount);
+    }
+    rangeTimeSum += timeInterval;
+    rangeVelocityAverage += velocityKnots;
+    rangeCurrentAverage += current;
+    rangeSumCount++; 
+  } else {
+    rangeSumCount = 0;
+    float usedAh = (rangeCurrentAverage / 20.0 * ((float) rangeTimeSum / 3600.0));
+    float hoursLeft = (rowAh - DOD) / usedAh * ((float) rangeTimeSum / 3600.0);
+    if (debugRange) {
+      Serial.print("current=");
+      Serial.print(rangeCurrentAverage / 20.0);
+      Serial.print(", used amp hours=");
+      Serial.print(usedAh);
+      Serial.print(", batt amp hours=");
+      Serial.print((rowAh - DOD));
+      Serial.print(", velocity=");
+      Serial.print(rangeVelocityAverage * 1.852 / 20.0);
+      Serial.print(", time=");
+      Serial.print(rangeTimeSum);
+      Serial.print(", hours left=");
+      Serial.print(hoursLeft);
+    }
+    float newRange = hoursLeft * rangeVelocityAverage * 1.852 / 20.0;
+    if (newRange < 0.0) {
+      range = 0;
+    } else if(newRange > 99.0) {
+      range = 99;
+    } else {
+      range = newRange;
+    }
+    if (debugRange) {
+      Serial.print(", range=");
+      Serial.println(newRange);
+    }
+    rangeSumCount = 0;
+    rangeCurrentAverage = 0.0;
+    rangeVelocityAverage = 0.0;
+    rangeTimeSum = 0;
+  }
+}
+
 void refreshLCD() {
   lcd.clear();
-    int printColumn = 0;
-    for (int i = 0; i <= 10 - (int) (SOC * 10.0 + 1); i++) {
-      lcd.setCursor(i, 0);
-      lcd.write(" ");
-      lcd.setCursor(i, 1);
-      lcd.write(" ");
-      printColumn = i;
-    }
-    unsigned char middleSymbol;
-    int decimalPercentage = int (SOC * 100.0) - int (SOC * 10) * 10;
-    if (decimalPercentage < 3) {
-      middleSymbol = ' ';
-    }
-    if (decimalPercentage <= 6) {
-      middleSymbol = byte(0);
-    }
-    if (decimalPercentage > 6) {
-      middleSymbol = (char) 255;
-    }
-    lcd.setCursor(printColumn + 1, 0);
-    lcd.write(middleSymbol);
-    lcd.setCursor(printColumn + 1, 1);
-    lcd.write(middleSymbol);
-
-    
-    for (int i = printColumn + 2; i <= int (SOC * 10.0) + printColumn; i++) {
-      lcd.setCursor(i, 0);
-      lcd.write((char) 255);
-      lcd.setCursor(i, 1);
-      lcd.write((char) 255);
-    }
-    lcd.setCursor(10, 0);
-    lcd.write("|");
-    lcd.print(SOC * 100);
-    lcd.setCursor(10, 1);
-    lcd.write("|");
-    lcd.print(mAh);
+  int printColumn = 0;
+  // battery charge bar
+  for (int i = 0; i <= 10 - (int) (SOC * 10.0 + 1); i++) {
+    lcd.setCursor(i, 0);
+    lcd.write(" ");
+    lcd.setCursor(i, 1);
+    lcd.write(" ");
+    printColumn = i;
+  }
+  unsigned char middleSymbol;
+  int decimalPercentage = int (SOC * 100.0) - int (SOC * 10) * 10;
+  if (decimalPercentage < 3) {
+    middleSymbol = ' ';
+  }
+  if (decimalPercentage <= 6) {
+    middleSymbol = byte(0);
+  }
+  if (decimalPercentage > 6) {
+    middleSymbol = (char) 255;
+  }
+  lcd.setCursor(printColumn + 1, 0);
+  lcd.write(middleSymbol);
+  lcd.setCursor(printColumn + 1, 1);
+  lcd.write(middleSymbol);
+  for (int i = printColumn + 2; i <= int (SOC * 10.0) + printColumn; i++) {
+    lcd.setCursor(i, 0);
+    lcd.write((char) 255);
+    lcd.setCursor(i, 1);
+    lcd.write((char) 255);
+  }
+  // divider
+  lcd.setCursor(10, 0);
+  lcd.write("|");
+  lcd.setCursor(10, 1);
+  lcd.write("|");
+  // velocity
+  char velocityText[3];
+  if (velocityKnots > 0) {
+    printReMappedString(itoa(velocityKnots * 1.852, velocityText, 10), 13);
+  } else {
+    printReMappedString(itoa(00, velocityText, 10), 13);
+  }
+  
+  // range
+  char rangeText[3];
+  if (velocityKnots * 1.852 > 5) {
+    printReMappedString(itoa(range, rangeText, 10), 15);
+  } else {
+    printReMappedString(itoa(99, rangeText, 10), 15);
+  }
 }
 
 void setup() {
@@ -215,6 +291,10 @@ void setup() {
   pinMode(lightSwitchPin, INPUT);
   pinMode(highBeamSwitchPin, INPUT);
   pinMode(lightDriverPin, OUTPUT);
+
+  Serial.begin(115200);
+  gpsSerial.begin(9600);
+  Serial.println("setting up"); 
   // lcd setup
   int status;
   status = lcd.begin(16, 2);
@@ -222,7 +302,7 @@ void setup() {
     hd44780::fatalError(status); // does not return
   }
   setCustomChars();
-  //debug mode to display characters on lcd, as well as test the voltage capacity function
+  //debug mode to display characters on lcd and test the voltage to capacity function
   if (debug) {
     lcd.print("DEBUG = 1");
     delay(200);
@@ -232,37 +312,77 @@ void setup() {
       char text[3];
       printReMappedString(itoa(i, text, 10), i);
     }
-    delay(2000);
+    delay(1500);
     lcd.clear();
-    delay(500);
-    for (int i = 110; i > 64; i--) {
+    delay(200);
+    for (int i = 110; i > 76; i--) {
       voltage = (float) i / 2.0;
       current = 0.1;
       setVDOD(voltage);
       DOD = vDOD;
       SOC = 1.0 - vDOD / rowAh;
       refreshLCD();
-      delay(500);
+      delay(200);
     }
     lcd.clear();
     lcd.print("DEBUG OVER");
+    Serial.println("debug over");
   }
   measureVA();
   setDOD();
-  bootAnimation();
+  bootAnimation();  
 }
 
 void loop() {
   setLights();
+  newGpsData = false;
+  unsigned long chars;
+  unsigned short sentences, failed;
+  
+  for (unsigned long start = millis(); millis() - start < 1000;) {
+    while (gpsSerial.available() &&  millis() - start < 1000) {
+      char c = gpsSerial.read();
+      if (debugGps) {
+        Serial.write(c);
+      }
+      if (gps.encode(c)) {
+        newGpsData = true;
+      }
+    }
+  }
+  if (newGpsData) {
+    velocityKnots = gps.speed();;
+  }
+  if (debugGps) {
+    Serial.print("\n\nsatellites=");
+    Serial.println(gps.satellites());
+    Serial.print("velocityKnots=");
+    Serial.println(velocityKnots);
+    gps.stats(&chars, &sentences, &failed);
+    Serial.print("CHARS=");
+    Serial.print(chars);
+    Serial.print(" SENTENCES=");
+    Serial.print(sentences);
+    Serial.print(" CSUM ERR=");
+    Serial.println(failed);
+    Serial.println("\n\n");
+  }
+  
+  setLights();
   measureVA();
   setDOD();
+  
   //current integration
-  delay(250);
-  unsigned long measureTime = (millis() - currentMeasureMillis) / 1000;
+  if (millis() - currentMeasureMillis > 1000) {
+    unsigned long measureTime = (millis() - currentMeasureMillis) / 1000;
   DOD = DOD - current * measureTime / 3600;
   SOC = 1.0 - (DOD / rowAh);
+  setRangeEstimation(measureTime);
   currentMeasureMillis = millis();
+  }
+  
 
+  //only refresh screen 0.66 Hz
   if (millis() - lcdRefreshMillis > 1500) {
     refreshLCD();
     lcdRefreshMillis = millis();
