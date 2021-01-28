@@ -27,11 +27,16 @@ The system automatically switches to active current mode and back, when a curren
 **LCD Display**
 
 The LCD display is mounted vertically on the bike frame, because the frame wasn't wide enough for a 16\*2 display to be mounted horizontally. This is why the display is only capable of showing 2 digit numbers per row and unit definitions have to be painted next to the lcd. Upside of mounting the display vertically is that a proper battery bar can be dispalyed on it. 
-8 extra custom characters (numbers 2,4,5,6,7,8,9 and a "halfbar") are saved to the LCD display. A custom function is used to print numbers to the display. Custom symbols can be  found at [CustomChar.c](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/EbikeBatteryRangeEstimator/CustomChar.c)
+8 extra custom characters (numbers 2,4,5,6,7,8,9 and a "halfbar") are saved to the LCD display. A custom function is used to print numbers to the display. Custom symbols located in [CustomChar.c](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/EbikeBatteryRangeEstimator/CustomChar.c)
 
 <img src="https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/LCD_interface_scaled.jpg" width='400'> 
 
 *Still missing decals to cover the horrible wiring :)* 
+
+**GPS**
+
+GPS module was chosen because of the possible extra features it has over a hall sensor and i already had one ready from an old project. A hall sensor would be better suited for measuring the bike velocity as it is faster and more precise than a gps module.
+
 
 ## Used parts and modules
 * **Arduino Nano 3.0**
