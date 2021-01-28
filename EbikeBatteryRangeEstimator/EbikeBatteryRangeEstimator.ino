@@ -3,6 +3,7 @@
 // Veikko Jaaskelainen
 extern "C"{
   #include "CellCapacity.h"
+  #include "CustomChar.h"
 }
 
 #include <Wire.h>
@@ -20,8 +21,8 @@ const int lightSwitchPin = 12;
 const int highBeamSwitchPin = 3;
 const int lightDriverPin = 11;
 
-hd44780_I2Cexp lcd(0x27);
 SoftwareSerial gpsSerial(gpsTX, gpsRX);
+hd44780_I2Cexp lcd(0x27);
 
 
 const float currentShift = 0.25;// calibrate current sensor 
@@ -52,6 +53,7 @@ float voltage = 0.0;
 
 unsigned long currentMeasureMillis = 0; // used for current integration
 unsigned long lcdRefreshMillis = 0; // used for lcd refreshing
+
 // nice animation to check lcd and front light works
 void bootAnimation() {
   int animationStep = 80;
@@ -66,9 +68,10 @@ void bootAnimation() {
     }
   }
   delay(300);
-  for (int i = 0; i <= 255; i++) {
+  for (int i = 0; i < 256; i++) {
     delay(animationStep / 17);
-    analogWrite(lightDriverPin, (255 - i) * (255 - lowLight) / 255 + lowLight );
+    float lighValueScaling = (255 - lowLight) / 255; // prevent overflow
+    analogWrite(lightDriverPin, (255 - i) * lighValueScaling  + lowLight );
     if (i % 17 == 0) {
       lcd.setCursor(i / 17, 0);
       lcd.write('=');
@@ -86,6 +89,31 @@ void bootAnimation() {
       lcd.write(' ');
     }
   }
+}
+
+// sets the lcd custom characters
+void setCustomChars() {
+  const int numbers[7] = {2,4,5,6,7,8,9};
+  byte customChar[8];
+  for (int i = 0; i < 7; i++) {
+    getCustomCharPattern(numbers[i], customChar);
+    lcd.createChar(i, customChar);
+  }
+}
+
+void printReMappedString(char inputText[], int column) {
+  if (column > 15 || column < 0) {
+    return;
+  }
+  unsigned char text[2];
+  remapText(inputText, text);
+  lcd.setCursor(column, 1);
+  lcd.write(byte(text[0]));
+  if (strlen(inputText) < 2) {
+    return;
+  }
+  lcd.setCursor(column, 0);
+  lcd.write(byte(text[1]));
 }
 
 // sets the PWM driven light to correct state
@@ -116,7 +144,6 @@ void measureVA() {
   current = tempCurrent / (float) iterations;
   voltage = tempVoltage / (float) iterations;
 }
-
 
 // Sets the vDOD according to the predefined discharge graph.  
 void setVDOD(float v) {
@@ -160,17 +187,27 @@ void setup() {
   pinMode(lightSwitchPin, INPUT);
   pinMode(highBeamSwitchPin, INPUT);
   pinMode(lightDriverPin, OUTPUT);
+  // lcd setup
   int status;
   status = lcd.begin(16, 2);
   if(status) {
     hd44780::fatalError(status); // does not return
   }
+  setCustomChars();
+  //debug mode to display characters on lcd, as well as test the voltage capacity function
   if (debug) {
     lcd.print("DEBUG = 1");
-    delay(500);
+    delay(200);
+    lcd.clear();
+    delay(200);
+    for (int i = 0; i < 15; i++) {
+      char text[3];
+      printReMappedString(itoa(i, text, 10), i);
+    }
+    delay(5000);
     lcd.clear();
     delay(500);
-    for (int i = 110; i > 0; i--) {
+    for (int i = 110; i > 64; i--) {
       voltage = (float) i / 2.0;
       current = 0.1;
       setVDOD(voltage);
