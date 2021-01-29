@@ -2,7 +2,7 @@
 // Ebike nominal voltage 48V 
 // LCD mounted sideways
 // More information at: https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator
-// Version 0.5 released: 28.1.2021
+// Version 1.1.0 released: 28.1.2021
 // Veikko Jaaskelainen
 
 extern "C"{
@@ -26,7 +26,7 @@ const int gpsRX = A1;
 const int currentPin = A3;
 const int voltagePin = A7;
 const int lightSwitchPin = 12;
-const int highBeamSwitchPin = 3;
+const int highBeamSwitchPin = 9;
 const int lightDriverPin = 11;
 
 SoftwareSerial gpsSerial(gpsTX, gpsRX);
@@ -53,6 +53,7 @@ const int lowLight = 10;
 const int highLight = 50;
 const int fullLight = 255;
 
+int currentLightValue = 0.0;
 // light switch states
 int lightState = 0;
 int beamState = 0;
@@ -108,8 +109,8 @@ void bootAnimation() {
   delay(300);
   for (int i = 0; i < 256; i++) {
     delay(animationStep / 17);
-    float lighValue = (255 - i ) > lowLight ? (255 - i) : lowLight;
-    analogWrite(lightDriverPin, lighValue);
+    float newLightValue = (255 - i ) > lowLight ? (255 - i) : lowLight;
+    analogWrite(lightDriverPin, newLightValue);
     if (i % 17 == 0) {
       lcd.setCursor(i / 17, 0);
       lcd.write('=');
@@ -158,15 +159,36 @@ void printReMappedString(char inputText[], int column) {
 // sets the PWM driven light to correct state
 void setLights() {
  // light state detection
+  int newLightValue;
   lightState = digitalRead(lightSwitchPin);
   beamState = digitalRead(highBeamSwitchPin);
   // set front light to current level
   if (lightState == 1 && beamState == 1) {
+    newLightValue = fullLight;
     analogWrite(lightDriverPin, fullLight);
   } else if (lightState == 1) {
-    analogWrite(lightDriverPin, highLight);
+    newLightValue = highLight;
   } else {
-    analogWrite(lightDriverPin, lowLight);
+    newLightValue = lowLight;
+  }
+  if (currentLightValue == newLightValue) {
+    return;
+  }
+  if (newLightValue < currentLightValue) {
+    for (int i = currentLightValue; i >= newLightValue; i--) {
+      analogWrite(lightDriverPin, i);
+      delay(5);
+    }
+    currentLightValue = newLightValue;
+    return;
+  }
+  if (newLightValue > currentLightValue) {
+    for (int i = currentLightValue; i <= newLightValue; i++) {
+      analogWrite(lightDriverPin, i);
+      delay(5);
+    }
+    currentLightValue = newLightValue;
+    return;
   }
 
 }
@@ -377,6 +399,7 @@ void setup() {
   if(status) {
     hd44780::fatalError(status); // does not return
   }
+ 
   setCustomChars();
   //debug mode to display characters on lcd and test the voltage to capacity function
   if (debug) {
