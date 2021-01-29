@@ -73,8 +73,9 @@ Additionally, the bike has a main relay driven by an ignition switch. The relay 
 * Hour meter (already included in most of the stock Ebike control units)
 
 ## Known Bugs
-* Powering the bike from battery stop the connection to the laptop. This is probably caused by the 5V step-down converter having different voltage than the computers usb port.
-* Before driving the headlight with a mosfet, the hub motor could be used as a dynamo powering the headlight in case of battery dying
+* Powering the bike from battery breaks the connection from Arduino to the laptop. This is probably caused by the 5V step-down converter having different voltage than the computers usb port.
+* Battery charge bar not rounding to 100 % after gull recharge
+* When the headlight was connected directly to the 12V step-down converter, the hub motor could be used as a dynamo powering the headlight in case of battery dying. This feature disappeared when the headlight was connected to a mosfet led driver
 * Setting LCD custom symbols should be done with pointers
 
 ## Sources
