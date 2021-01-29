@@ -50,7 +50,7 @@ GPS module was chosen mainly because of I already had one from an old project. A
 ## Schematic 
 
 **Arduino pins and voltage dividers**
-![Arduino wiring](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/wiring.svg?)
+![Arduino wiring](https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/wiring.svg)
 
 
 The bike operates on 3 voltage levels:
