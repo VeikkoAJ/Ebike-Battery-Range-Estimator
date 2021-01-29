@@ -7,7 +7,7 @@ Main features:
 * Intelligent battery capacity monitoring
 * Range estimation
 * Vertical display
-* Cool headlight and display animation on startup 
+* Cool headlight and display animation on startup
 
 Main motivation for this project was a need for a better battery capacity monitor. A more precise headlight brightness control was also needed. Displaying the data had additional challenges, as the LCD display had to be mounted vertically on the frame due to frame width limitations. This was solved by turning all character 90 degrees sideways.
 
