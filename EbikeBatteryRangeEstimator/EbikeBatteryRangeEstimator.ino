@@ -2,7 +2,7 @@
 // Ebike nominal voltage 48V 
 // LCD mounted sideways
 // More information at: https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator
-// Version 1.1.0 released: 28.1.2021
+// Version 1.1.5 released: 31.1.2021
 // Veikko Jaaskelainen
 
 extern "C"{
@@ -12,7 +12,7 @@ extern "C"{
 
 #include <Wire.h>
 #include <SoftwareSerial.h>
-#include <TinyGPS.h>
+#include <TinyGPS++.h>
 #include <hd44780.h>                  
 #include <hd44780ioClass/hd44780_I2Cexp.h>
 
@@ -30,7 +30,7 @@ const int highBeamSwitchPin = 9;
 const int lightDriverPin = 11;
 
 SoftwareSerial gpsSerial(gpsTX, gpsRX);
-TinyGPS gps;
+TinyGPSPlus gps;
 hd44780_I2Cexp lcd(0x27);
 
 // current sensor logic (0 V = -30 A, 2.5 V = 0 A, 5 V = +30 A)
@@ -302,20 +302,12 @@ void getGPSVelocity() {
     }
   }
   if (newGpsData) {
-    velocityKnots = gps.speed();;
+    velocityKnots = gps.speed.knots(); //change directly to km/h.
   }
   if (debugGps) {
     Serial.print("\n\nsatellites=");
-    Serial.println(gps.satellites());
     Serial.print("velocityKnots=");
     Serial.println(velocityKnots);
-    gps.stats(&chars, &sentences, &failed);
-    Serial.print("CHARS=");
-    Serial.print(chars);
-    Serial.print(" SENTENCES=");
-    Serial.print(sentences);
-    Serial.print(" CSUM ERR=");
-    Serial.println(failed);
     Serial.println("\n\n");
   }
 }
@@ -325,13 +317,16 @@ void refreshLCD() {
   lcd.clear();
   int printColumn = 0;
   // batterypack capacity bar
-  for (int i = 0; i <= 10 - (int) (SOC * 10.0 + 1); i++) {
-    lcd.setCursor(i, 0);
-    lcd.write(" ");
-    lcd.setCursor(i, 1);
-    lcd.write(" ");
-    printColumn = i;
+  if (SOC < 0.9) {
+    for (int i = 0; i <= 10 - (int) (SOC * 10.0 + 1); i++) {
+      lcd.setCursor(i, 0);
+      lcd.write(" ");
+      lcd.setCursor(i, 1);
+      lcd.write(" ");
+      printColumn = i;
+    }
   }
+  //middle half bar used to present 0.1-0.9 percent
   unsigned char middleSymbol;
   int decimalPercentage = int (SOC * 100.0) - int (SOC * 10) * 10;
   if (decimalPercentage < 3) {
@@ -360,19 +355,30 @@ void refreshLCD() {
   lcd.write("|");
   // velocity
   char velocityText[3];
-  if (velocityKnots > 0) {
-    printReMappedString(itoa(velocityKnots * 1.852, velocityText, 10), 12);
+  if (velocityKnots > 0.0) {
+    printReMappedString(itoa(velocityKnots * 1.852, velocityText, 10), 11);
   } else {
-    printReMappedString(itoa(00, velocityText, 10), 12);
+    printReMappedString(itoa(00, velocityText, 10), 11);
   }
   // range
   char rangeText[3];
-  if (velocityKnots * 1.852 > 5) {
-    printReMappedString(itoa(range, rangeText, 10), 14);
+  if (velocityKnots * 1.852 > 5.0) {
+    printReMappedString(itoa(range, rangeText, 10), 12);
   } else {
-    printReMappedString(itoa(99, rangeText, 10), 14);
+    printReMappedString(itoa(99, rangeText, 10), 12);
   }
-  // divider
+  //SOC
+  char SOCText[3];
+  if (SOC * 100 > 99.0) {
+    printReMappedString(itoa(99, SOCText, 10), 14);
+  } else {
+    printReMappedString(itoa((int) SOC * 100.0, SOCText, 10), 14);
+  }
+  // cacacity  Ah * 10
+  char capacityText[3];
+  printReMappedString(itoa((int) (DOD * 10.0), capacityText, 10), 15);
+  
+  // divider (in wrong place!)
   lcd.setCursor(10, 0);
   lcd.write("|");
   lcd.setCursor(10, 1);
