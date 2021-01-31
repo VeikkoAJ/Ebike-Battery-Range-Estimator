@@ -9,7 +9,9 @@ Main features:
 * Vertical display
 * Cool headlight and display animation on startup
 
-Main motivation for this project was a need for a better battery capacity monitor. A more precise headlight brightness control was also needed. Displaying the data had additional challenges, as the LCD display had to be mounted vertically on the frame due to frame width limitations. This was solved by turning all character 90 degrees sideways.
+Main motivation for this project was a need for a more precise battery capacity monitor. Basic capacity monitors use a linear voltage model to estimate battery charge state. More complex system was needed in order to compensate for battery internal resistance voltage sag and non linearity of cell voltages.  
+Additional challenge this project had was the LCD display. The LCD display had to be mounted vertically on the frame due to frame width limitations, making conventional methods of using the display impossible. This was solved with custom characters which were turned 90 degrees sideways.
+
 
 
 ## Usage
@@ -40,12 +42,21 @@ GPS module was chosen mainly because of I already had one from an old project. A
 
 
 ## Parts and modules
+
+**Electric bicycle control unit**
+
 * **Arduino Nano 3.0**
 * **ACS712 30A** current sensor 
 * **Neo-6m** GPS module
 * **hd44780** 16*2 lcd display 
 * **PCF8574** I2C backpack
 
+**Other parts on the bike**
+
+* **Battery pack** 2600 mAh 18650 cell in 13s3p configuration, with a 30 A BMS-board and  30A automotive fuze
+* **Rear hub motor** 2000 W 3-phase direct drive
+* **Motor Controller** 48 V, 30 A max rated controller with display, brake sensor and pedal assist sensors
+* **step-down converters** 60 V to 12 V (60 W) for driving lights and 12 V to (5 V 5 W) for driving controller and sensors
 
 ## Schematic 
 
@@ -77,6 +88,16 @@ Additionally, the bike has a main relay driven by an ignition switch. The relay 
 * Battery charge bar not rounding to 100 % after gull recharge
 * When the headlight was connected directly to the 12V step-down converter, the hub motor could be used as a dynamo powering the headlight in case of battery dying. This feature disappeared when the headlight was connected to a mosfet led driver
 * Setting LCD custom symbols should be done with pointers
+
+## More pictures
+**Full bicycle**
+
+<img src="https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/fullbike.png" width="760">
+
+**Frame design**
+
+<img src="https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/runko%20v2%20Drawing%20v2-1.jpg" width="760">
+
 
 ## Sources
 * [Battery capacity and discharge graphs, lygte-info](https://lygte-info.dk/review/batteries2012/LG%2018650%20M26%202600mAh%20(Purple)%20UK.html)
