@@ -97,6 +97,7 @@ Additionally, the bike has a main relay driven by an ignition switch. The relay 
 **Frame design**
 
 <img src="https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/runko%20v2%20Drawing%20v2-1.jpg" width="760">
+Chainstay and fork is from a donor bicycle frame. Rest of the frame was welded from 20 mm steel square tube. front rim is laced on to a disc brake hub and caliper mounts were welded on to the front fork. The project started back in spring of 2018.
 
 
 ## Sources
