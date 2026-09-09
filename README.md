@@ -99,6 +99,9 @@ Chainstay and fork is from a donor bicycle frame. Rest of the frame was welded f
 **Frame design**
 
 <img src="https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/runko%20v2%20Drawing%20v2-1.jpg" width="760">
+<img src="https://github.com/VeikkoAJ/Ebike-Battery-Range-Estimator/blob/main/pics/ebike%20frame%20partlist.png" width="760">
+The frame pieces were cut with hacksaw and then carefully measured and welded together.
+
 
 ## Sources
 * [Battery capacity and discharge graphs, lygte-info](https://lygte-info.dk/review/batteries2012/LG%2018650%20M26%202600mAh%20(Purple)%20UK.html)
